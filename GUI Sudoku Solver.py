@@ -26,11 +26,11 @@ class Cube:
             text=fnt.render(str(self.temp),1,'Grey')
             screen.blit(text,(x+5,y+5))
         elif not(self.value==0):
-            text=fnt.render(str(self.value),1,'White')
+            text=fnt.render(str(self.value),1,'Black')
             screen.blit(text,(x + (gap/2-text.get_width()/2),y + (gap/2-text.get_height()/2)))
 
         if self.selected:
-            pygame.draw.rect(screen,'Red',(x,y,gap,gap),3)
+            pygame.draw.rect(screen,'Green',(x,y,gap,gap),3)
 
     def set(self,val):
         self.value=val
@@ -43,7 +43,7 @@ class Cube:
         gap = self.width / 9
         x = self.col * gap
         y = self.row * gap
-        pygame.draw.rect(screen, 'Red', (x, y, gap, gap), 0)
+        pygame.draw.rect(screen, 'White', (x, y, gap, gap), 0)
         text=fnt.render(str(self.value),1,'Black')
         screen.blit(text, (x + (gap/2 - text.get_height()/2), y + (gap/2 - text.get_height()/2)))
 
@@ -79,7 +79,7 @@ class Grid:
         self.selected=None
 
     def update_model(self):
-        self.model=[[self.cubes[i][j].value for i in range(self.col)]for j in range(self.row)]
+        self.model=[[self.cubes[i][j].value for j in range(self.col)]for i in range(self.row)]
 
     def place(self,val):
         rows,cols=self.selected
@@ -87,13 +87,13 @@ class Grid:
             self.cubes[rows][cols].set(val)
             self.update_model()
 
-        if isvalid(self.model,rows,cols,val) and self.solve():
-            return True
-        else:
-            self.cubes[rows][cols].set(0)
-            self.cubes[rows][cols].set_temp(0)
-            self.update_model()
-            return False
+            if isvalid(self.model,rows,cols,val):
+                return True
+            else:
+                self.cubes[rows][cols].set(0)
+                self.cubes[rows][cols].set_temp(0)
+                self.update_model()
+                return False
 
     def sketch(self,val):
         rows,cols=self.selected
@@ -104,11 +104,11 @@ class Grid:
         gap=self.width/9
         for i in range(self.row+1):
             if i%3==0 and i!=0:
-                thick=3
+                thick=4
             else:
-                thick=1
-            pygame.draw.line(self.screen,'White',(0,i*gap),(self.width,i*gap),thick)
-            pygame.draw.line(self.screen,'White',(i*gap,0),(i*gap,self.height),thick)
+                thick=2
+            pygame.draw.line(self.screen,'Black',(0,i*gap),(self.width,i*gap),thick)
+            pygame.draw.line(self.screen,'Black',(i*gap,0),(i*gap,self.height),thick)
 
         for i in range(self.row):
             for j in range(self.col):
@@ -132,7 +132,7 @@ class Grid:
             gap=self.width/9
             rows=x//gap
             cols=y//gap
-            return int(cols),int(rows)
+            return (int(cols),int(rows))
         else:
             return None
 
@@ -152,8 +152,8 @@ class Grid:
         else:
             return True
 
-        for i in range(1,10):
-            if isvalid(self.sudoku,rows,cols,i):
+        for i in range(10):
+            if isvalid(self.model,rows,cols,i):
                 self.model[rows][cols]=i
                 if self.solve():
                     return True;
@@ -170,7 +170,7 @@ class Grid:
         else:
             return True
 
-        for i in range(1,10):
+        for i in range(10):
             if isvalid(self.model,rows,cols,i):
                 self.model[rows][cols]=i
                 self.cubes[rows][cols].set(i)
@@ -202,11 +202,13 @@ def get_empty(sudoku):
 
 def isvalid(sudoku,row,column,target):
     for i in range(9):
-        if sudoku[row][i]==target and row!=i:
+        if sudoku[row][i]==target and column!=i:
             return False
+        else:
+            continue
 
     for i in range(9):
-        if sudoku[i][column]==target and col!=i:
+        if sudoku[i][column]==target and row!=i:
             return False
 
     row_block=(row//3)*3
@@ -214,16 +216,16 @@ def isvalid(sudoku,row,column,target):
 
     for i in range(3):
         for j in range(3):
-            if(sudoku[row_block+i][col_block+j]==target):
+            if sudoku[row_block+i][col_block+j]==target and row_block!=row and col_block!=column:
                 return False
 
     return True
 
 
 def redraw_win(screen,sudoku,time,strikes):
-    screen.fill('Black')
+    screen.fill('White')
     fnt=pygame.font.SysFont('comicsans',20)
-    text=fnt.render("Time: "+format_time(time),1,'White')
+    text=fnt.render("Time: "+format_time(time),1,'black')
     screen.blit(text,(470,605))
 
     text=fnt.render("X "*strikes,1,'Red')
